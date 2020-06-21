@@ -23,11 +23,17 @@ for job_elem in job_elems:
     if None in (title_elem, company_elem, location_elem):
         continue
     detail_link = job_elem.find('a')['href']
-    
+    detail_page = requests.get(detail_link)
+    detail_soup = BeautifulSoup(detail_page.content, 'html.parser')
+    detail_container = detail_soup.find(id='content')
+    if None in (detail_link, detail_container):
+        continue
+
     print(title_elem.text.strip())
     print(company_elem.text.strip())
     print(location_elem.text.strip())
     print(detail_link)
+    print(detail_container.text.strip())
     print()
 
 for p_job in python_jobs:
