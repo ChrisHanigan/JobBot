@@ -1,1 +1,1 @@
-python scraper.py
+python main.py
