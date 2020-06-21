@@ -1,2 +1,8 @@
+# search terms
 location = 'Australia'
-keyword = 'Software-Developer'
+keyword = 'Architect'
+
+# analysis settings
+# exp
+# tools
+#

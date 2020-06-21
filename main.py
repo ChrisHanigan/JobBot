@@ -19,18 +19,18 @@ for job_elem in job_elems:
     title_elem = job_elem.find('h2', class_='title')
     company_elem = job_elem.find('div', class_='company')
     location_elem = job_elem.find('div', class_='location')
+
     if None in (title_elem, company_elem, location_elem):
         continue
+    detail_link = job_elem.find('a')['href']
+    
     print(title_elem.text.strip())
     print(company_elem.text.strip())
     print(location_elem.text.strip())
+    print(detail_link)
     print()
 
 for p_job in python_jobs:
     link = p_job.find('a')['href']
     print(p_job.text.strip())
     print(f"Apply here: {link}\n")
-
-print(URL)
-print(location)
-print(keyword)
