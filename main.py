@@ -50,30 +50,35 @@ def monster():
 
 def seek():
     URL = 'https://www.seek.com.au/{}-jobs/in-All-{}'.format(keyword, location)
-    page = requests.get(URL)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    results = soup.find_all('article')
 
-    for job_elem in results:
-        title_elem = job_elem.find('h1')
-        company_elem = job_elem.find('a', class_='_3AMdmRg')
-        location_elem = job_elem.find('div', class_='xxz8a1h').find('a', class_='_3AMdmRg')
+    def scrape(URL):
+        page = requests.get(URL)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        results = soup.find_all('article')
 
-        detail_link = 'https://www.seek.com.au'+title_elem.find("a")['href']
-        detail_page = requests.get(detail_link)
-        detail_soup = BeautifulSoup(detail_page.content, 'html.parser')
-        detail_container = detail_soup.find('div', class_='_2e4Pi2B')
+        for job_elem in results:
+            title_elem = job_elem.find('h1')
+            company_elem = job_elem.find('a', class_='_3AMdmRg')
+            location_elem = job_elem.find('div', class_='xxz8a1h').find('a', class_='_3AMdmRg')
 
-        print(title_elem.text)
-        print(company_elem.text)
-        print(location_elem.text)
-        print(detail_link)
-        print(detail_container.text.strip())
-        print()
+            detail_link = 'https://www.seek.com.au'+title_elem.find("a")['href']
+            detail_page = requests.get(detail_link)
+            detail_soup = BeautifulSoup(detail_page.content, 'html.parser')
+            detail_container = detail_soup.find('div', class_='_2e4Pi2B')
 
+            print(title_elem.text)
+            print(company_elem.text)
+            print(location_elem.text)
+            print(detail_link)
+            print(detail_container.text.strip())
+            print()
 
+        next_page = 'https://www.seek.com.au'+soup.find('a', rel='next')['href']
+        scrape(next_page)
+
+    scrape(URL)
 
 # executions ################################################################### function executions
 
-# monster()
+monster()
 seek()
