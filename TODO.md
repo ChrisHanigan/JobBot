@@ -1,2 +1,3 @@
-1. Get monster job details
+# done
+1. scrape monster
 2. Scrape seek
