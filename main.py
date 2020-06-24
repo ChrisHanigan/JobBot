@@ -1,14 +1,21 @@
-# https://realpython.com/beautiful-soup-web-scraper-python/
-
 from keywords import *
 import requests
 import pprint
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from parsel import Selector
+import sys
 
 # index
 #
-# 1. Search functions
-# 2. function executions
+# 1. universals
+# 2. Search functions
+# 3. function executions
+
+# universals ################################################################### universals
+driver = webdriver.Chrome()
 
 
 # search functions ############################################################# search functions
@@ -44,9 +51,9 @@ def monster():
 
     # for p_job in python_jobs:
 
-    #    link = p_job.find('a')['href']
-    #    print(p_job.text.strip())
-    #    print(f"Apply here: {link}\n")
+       # link = p_job.find('a')['href']
+       # print(p_job.text.strip())
+       # print(f"Apply here: {link}\n")
 
 def seek():
     URL = 'https://www.seek.com.au/{}-jobs/in-All-{}'.format(keyword, location)
@@ -78,7 +85,45 @@ def seek():
 
     scrape(URL)
 
+def VicGov():
+    # https://www.linkedin.com/pulse/how-easy-scraping-data-from-linkedin-profiles-david-craven/
+    URL = "https://jobs.careers.vic.gov.au/jobtools/"
+
+
+
+def linkedin():
+    # https://www.linkedin.com/pulse/how-easy-scraping-data-from-linkedin-profiles-david-craven/
+    URL = 'https://www.linkedin.com/jobs/search/?keywords={}&location={}'.format(keyword, location)
+    def scrape(URL):
+        driver.get(URL)
+        page = driver.page_source.encode(sys.stdout.encoding, errors='replace')
+        soup = BeautifulSoup(page, 'html.parser')
+        next_page = soup.find
+
+        def checkpage():
+            noEnd = True
+            while noEnd == True:
+                print('scrolling')
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                page = driver.page_source.encode(sys.stdout.encoding, errors='replace')
+                soup = BeautifulSoup(page, 'html.parser')
+                if (soup.find('button', class_='infinite-scroller__show-more-button--visible')):
+                    noEnd = False
+                    print('end')
+            else:
+                print('processing')
+                results = soup.find_all('li', class_='result-card')
+                for job_elem in results:
+                    detail_link = job_elem.find('a')['href']
+                    print(detail_link)
+        checkpage()
+        driver.quit()
+    scrape(URL)
 # executions ################################################################### function executions
 
-monster()
-seek()
+# monster()
+# seek()
+linkedin()
+# VicGov()
+
+# threading.Thread(target=f).start() to run simultaniously
