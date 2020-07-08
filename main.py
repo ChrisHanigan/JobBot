@@ -1,13 +1,16 @@
-from keywords import *
+"""Gets jobs adverts and analyses them."""
+import mmap
+import csv
+import sys
 import requests
+import pandas
 # import pprint
 from bs4 import BeautifulSoup
 from selenium import webdriver
 # from selenium.webdriver.common.by import By
 # from selenium.webdriver.common.keys import Keys
 # from parsel import Selector
-import sys
-import csv
+from keywords import keyword, location
 
 # index
 #
@@ -16,21 +19,23 @@ import csv
 # 3. function executions
 
 # universals ###################################################### universals
-# driver = webdriver.Chrome()
+
 jobdata = ["title", "company", "location", "url", "details"]
-jobscollected = 0
+JOBS_COLLECTED = 0
 
 
-# counts number of jobs found !! UnboundLocalError: local variable 'jobscollected' referenced before assignment
 def jobsdone():
-    global jobscollected
-    jobscollected = jobscollected + 1
-    print('jobs done: ' + str(jobscollected))
+    '''Count number of jobs while searching'''
+    global JOBS_COLLECTED
+    JOBS_COLLECTED = JOBS_COLLECTED + 1
+    print('jobs done: ' + str(JOBS_COLLECTED))
 
 
 # create File
-with open('data.csv', 'w', newline='') as datafile:
-    datawrite = csv.writer(datafile)
+def createfile():
+    with open('data.csv', 'w', newline=''):  # as datafile:
+        #   datawrite = csv.writer(datafile)
+        pass
 
 
 def write(jobdata):
@@ -72,18 +77,19 @@ def monster():
 
 
 def seek():
-    URL = 'https://www.seek.com.au/{}-jobs/in-All-{}'.format(keyword, location)
+    '''Search seek.com and write job advertisements to file'''
+    url = 'https://www.seek.com.au/{}-jobs/in-All-{}'.format(keyword, location)
 
-    def scrape(URL):
-        page = requests.get(URL)
+    def scrape(url):
+        page = requests.get(url)
         soup = BeautifulSoup(page.content, 'html.parser')
         results = soup.find_all('article')
 
         for job_elem in results:
             title_elem = job_elem.find('h1')
             company_elem = job_elem.find('a', class_='_3AMdmRg')
-            location_elem = job_elem.find(
-                'div', class_='xxz8a1h').find('a', class_='_3AMdmRg')
+            location_elem = job_elem.find('div', class_='xxz8a1h').find(
+                'a', class_='_3AMdmRg')
 
             detail_link = 'https://www.seek.com.au' + \
                 title_elem.find("a")['href']
@@ -91,8 +97,11 @@ def seek():
             detail_soup = BeautifulSoup(detail_page.content, 'html.parser')
             detail_container = detail_soup.find('div', class_='_2e4Pi2B')
 
-            jobdata = [title_elem.text, company_elem.text,
-                       location_elem.text, detail_link, detail_container.text.strip()]
+            jobdata = [
+                title_elem.text, company_elem.text, location_elem.text,
+                detail_link,
+                detail_container.text.strip()
+            ]
 
             write(jobdata)
 
@@ -102,24 +111,27 @@ def seek():
             soup.find('a', rel='next')['href']
         scrape(next_page)
 
-    scrape(URL)
+    scrape(url)
 
 
 def VicGov():
     # https://www.linkedin.com/pulse/how-easy-scraping-data-from-linkedin-profiles-david-craven/
-    URL = "https://jobs.careers.vic.gov.au/jobtools/"
+    # URL = "https://jobs.careers.vic.gov.au/jobtools/"
+    pass
 
 
 def linkedin():
+    '''Search linkedin.com and write job advertisements to file'''
+    driver = webdriver.Chrome()
     # https://www.linkedin.com/pulse/how-easy-scraping-data-from-linkedin-profiles-david-craven/
     URL = 'https://www.linkedin.com/jobs/search/?keywords={}&location={}'.format(
         keyword, location)
 
     def scrape(URL):
         driver.get(URL)
-        page = driver.page_source.encode(sys.stdout.encoding, errors='replace')
-        soup = BeautifulSoup(page, 'html.parser')
-        # next_page = soup.find
+
+        # page = driver.page_source.encode(sys.stdout.encoding, errors='replace')
+        # soup = BeautifulSoup(page, 'html.parser')
 
         def checkpage():
             noEnd = True
@@ -127,10 +139,13 @@ def linkedin():
                 print('scrolling')
                 driver.execute_script(
                     "window.scrollTo(0, document.body.scrollHeight);")
-                page = driver.page_source.encode(
-                    sys.stdout.encoding, errors='replace')
+                page = driver.page_source.encode(sys.stdout.encoding,
+                                                 errors='replace')
                 soup = BeautifulSoup(page, 'html.parser')
-                if (soup.find('button', class_='infinite-scroller__show-more-button--visible')):
+                if (soup.find(
+                        'button',
+                        class_='infinite-scroller__show-more-button--visible')
+                    ):
                     noEnd = False
                     print('end')
             else:
@@ -139,29 +154,41 @@ def linkedin():
                 for job_elem in results:
                     detail_link = job_elem.find('a')['href']
                     driver.get(detail_link)
-                    page = driver.page_source.encode(
-                        sys.stdout.encoding, errors='replace')
+                    page = driver.page_source.encode(sys.stdout.encoding,
+                                                     errors='replace')
                     soup = BeautifulSoup(page, 'html.parser')
                     # soup. get detail sections of job page e.g. title, description
 
         checkpage()
         driver.quit()
+
     scrape(URL)
 
 
-# executions ############################################# function executions
+# Process results ############################################# Process results https://www.youtube.com/watch?v=vmEHCJofslg&t=904s
 
-write(jobdata)
-# monster()
-seek()
+
+def process():
+    '''Process results.'''
+    data = pandas.read_csv('data.csv', 'utf-8', engine='python', delimiter=',')
+    print(data.loc[~data['details'].str.contains('experience')])
+
+
+# executions ############################################# function executions
+# createfile()
+# write(jobdata)
+
+# seek()
+# # monster()
 # linkedin()
 # VicGov()
 
-# TODO
+# ---TODO---
 # indeed()
 # careerone()
 # jobsearchaus()
 # adzuna()
 # aps()
+process()
 
 # threading.Thread(target=f).start() to run simultaniously
