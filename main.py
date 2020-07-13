@@ -1,16 +1,17 @@
-"""Gets jobs adverts and analyses them."""
-import mmap
+"""Gets job adverts and analyses them."""
 import csv
 import sys
 import requests
 import pandas
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
 # import pprint
 from bs4 import BeautifulSoup
 from selenium import webdriver
 # from selenium.webdriver.common.by import By
 # from selenium.webdriver.common.keys import Keys
 # from parsel import Selector
-from keywords import keyword, location
+from keywords import *
 
 # index
 #
@@ -23,6 +24,9 @@ from keywords import keyword, location
 jobdata = ["title", "company", "location", "url", "details"]
 JOBS_COLLECTED = 0
 
+# sys.stdout.write("\rDoing thing %i" % i)
+# sys.stdout.flush()
+
 
 def jobsdone():
     '''Count number of jobs while searching'''
@@ -32,16 +36,16 @@ def jobsdone():
 
 
 # create File
+def write(jobdata, filename):
+    with open(filename, 'a', encoding='utf-8', newline='') as datafile:
+        datawrite = csv.writer(datafile)
+        datawrite.writerow(jobdata)
+
+
 def createfile():
     with open('data.csv', 'w', newline=''):  # as datafile:
         #   datawrite = csv.writer(datafile)
-        pass
-
-
-def write(jobdata):
-    with open('data.csv', 'a', newline='') as datafile:
-        datawrite = csv.writer(datafile)
-        datawrite.writerow(jobdata)
+        write(jobdata, "data.csv")
 
 
 # search functions ########################################## search functions
@@ -103,7 +107,7 @@ def seek():
                 detail_container.text.strip()
             ]
 
-            write(jobdata)
+            write(jobdata, "data.csv")
 
             jobsdone()
 
@@ -170,16 +174,45 @@ def linkedin():
 
 def process():
     '''Process results.'''
+    pandas.set_option('display.max_colwidth', None)
     data = pandas.read_csv('data.csv', 'utf-8', engine='python', delimiter=',')
-    print(data.loc[~data['details'].str.contains('experience')])
+    print('{} jobs found'.format(data.shape[0]))
 
 
-# executions ############################################# function executions
+    for s in exclude:
+        print('{} contained the phrase "{}"'.format((data["details"].loc[data['details'].str.contains(s)].shape[0]),s))
+
+    print(data.loc[4])
+    # print((data["details"].loc[~data['details'].str.contains(exclude[0])]))
+
+    # print how often a word appears
+    # for x in (data['details']):
+    #     print(x.count(exclude))
+
+    # write(data["details"], "output.csv")
+
+    # # seperate data into seperate words
+    # filtered = []
+    # for x in (data["details"]):
+    #     stop_words = set(stopwords.words("english"))
+    #     for i in (word_tokenize(x)):
+    #         if i not in stop_words:
+    #             filtered.append(i)
+    # print(filtered)
+
+
+    # filter out results that include word from exclude variable
+    # (data["details"].loc[~data['details'].str.contains(exclude)])
+    # (data.loc[~data['details'].str.contains(exclude)])
+
+    # https://www.youtube.com/watch?v=yGKTphqxR9Q
+
+
+# EXECUTIONS ############################################# function executions
 # createfile()
-# write(jobdata)
 
-# seek()
-# # monster()
+# seek()  # UnicodeEncodeError: 'charmap' codec can't encode characters in position 1526-1527: character maps to <undefined> // should be fixed now
+# monster()
 # linkedin()
 # VicGov()
 
@@ -189,6 +222,9 @@ def process():
 # jobsearchaus()
 # adzuna()
 # aps()
+
+# analysis
+
 process()
 
 # threading.Thread(target=f).start() to run simultaniously
